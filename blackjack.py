@@ -1,104 +1,144 @@
-# Blackjack Game
-
-"""
-This module contains the implementation of a simple Blackjack game.
-The game allows a user to play against a dealer, where both the player
-and dealer try to get as close to 21 without going over.
-"""
-
+import art
 import random
 
-# Define a function to calculate the score of a hand
+"""
+Simple Blackjack Game
 
-def calculate_score(hand):
-    """
-    Calculate the current score of the given hand.
-    The score is calculated by summing the card values.
-    Aces can count as 1 or 11, depending on the current score.
-    """
-    score = 0
-    ace_count = 0
-    
-    for card in hand:
-        if card in ['K', 'Q', 'J']:
-            score += 10
-        elif card == 'A':
-            ace_count += 1
-            score += 11  # Initially count Ace as 11
-        else:
-            score += card  # For numeric cards
-    
-    # Adjust score for Aces if score exceeds 21
-    while score > 21 and ace_count:
-        score -= 10  # Count Ace as 1 instead of 11
-        ace_count -= 1
-    return score
+This program allows a user to play a simplified game of Blackjack
+against the computer (dealer). The goal is to get a score as close
+to 21 as possible without going over.
 
-# Define a function to get a random card
+Rules implemented:
+- Number cards count as their value
+- Face cards count as 10
+- Ace can count as 11 or 1 depending on the score
+- Blackjack (Ace + 10) is represented as 0 for easy comparison
+"""
+
+# Deck of possible card values
+cards = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
+
 
 def deal_card():
     """
-    Return a random card from the deck.
-    Possible values are numbers 2-10, and 'J', 'Q', 'K', 'A'.
+    Randomly selects and returns a card from the deck.
     """
-    cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
     return random.choice(cards)
 
-# Define a function to play a round of Blackjack
 
-def play_blackjack():
+def calculate_score(card_list):
     """
-    Main function to execute the Blackjack game.
-    It handles the game flow, including dealing cards
-    to the player and dealer, and determining the winner.
-    """
-    player_hand = []
-    dealer_hand = []
-    
-    for _ in range(2):  # Deal two cards to each player
-        player_hand.append(deal_card())
-        dealer_hand.append(deal_card())
+    Calculates the score of a hand.
 
-    game_over = False
-    
-    while not game_over:
-        player_score = calculate_score(player_hand)
-        dealer_score = calculate_score(dealer_hand)
-        print(f'    Player hand: {player_hand}, current score: {player_score}')
-        print(f'    Dealer hand: {dealer_hand}, current score: {dealer_score}')
-        
-        if player_score == 0 or dealer_score == 0 or player_score > 21:
-            game_over = True
-        else:
-            should_continue = input('    Type "y" to get another card, "n" to pass: ')
-            if should_continue == "y":
-                player_hand.append(deal_card())
-            else:
-                game_over = True
-    
-    while dealer_score != 0 and dealer_score < 17:
-        dealer_hand.append(deal_card())
-        dealer_score = calculate_score(dealer_hand)
-    
-    print(f'    Final player hand: {player_hand}, final score: {player_score}')
-    print(f'    Final dealer hand: {dealer_hand}, final score: {dealer_score}')
-    
-    if player_score > 21:
-        return 'You went over. You lose!'
-    elif dealer_score > 21:
-        return 'Dealer went over. You win!'
-    elif player_score == dealer_score:
-        return 'Draw!'
-    elif player_score == 0:
-        return 'Blackjack! You win!'
-    elif dealer_score == 0:
-        return 'Dealer blackjack! You lose!'
-    elif player_score > dealer_score:
-        return 'You win!'
+    Rules:
+    - If the hand has 21 with exactly 2 cards, it is considered Blackjack (returns 0).
+    - If the score is over 21 and an Ace (11) exists, convert the Ace to 1.
+    """
+    score = sum(card_list)
+
+    # Check for Blackjack (Ace + 10)
+    if score == 21 and len(card_list) == 2:
+        return 0
+
+    # Adjust Ace value from 11 to 1 if score is over 21
+    elif 11 in card_list and score > 21:
+        card_list.remove(11)
+        card_list.append(1)
+
+    return sum(card_list)
+
+
+def compare(user_s, comp_s):
+    """
+    Compares the user score and computer score
+    to determine the winner of the game.
+    """
+
+    print(f"Your final hand: {your_deck} final score: {calculate_score(your_deck)}")
+    print(f"Computers final hand: {comp_deck} final score: {calculate_score(comp_deck)}")
+
+    if user_s == comp_s:
+        print("Draw! You tied!")
+
+    elif comp_s == 0:
+        print("You lose! Computer has blackjack!")
+
+    elif user_s == 0:
+        print("You win! You have blackjack!")
+
+    elif comp_s > 21:
+        print("You win! The computer went over 21!")
+
+    elif user_s > 21:
+        print("You lose! You went over 21!")
+
+    elif user_s > comp_s:
+        print("You win! Your score is higher!")
+
     else:
-        return 'You lose!'
+        print("You lose! Computer score is higher!")
 
-# Run the game
-if __name__ == '__main__':
-    result = play_blackjack()
-    print(result)
+
+# Controls whether the game continues running
+restart = True
+
+# Main game loop
+while restart:
+
+    # Initialize hands for each round
+    your_deck = []
+    comp_deck = []
+
+    play = input("Do you want to play a game of blackjack? Type 'y' or 'n'. ").lower()
+
+    if play == "n":
+        restart = False
+        print("Ok have a nice day!")
+        break
+
+    else:
+        # Print game logo
+        print(art.logo)
+
+        # Deal two cards to player and dealer
+        your_deck.append(deal_card())
+        your_deck.append(deal_card())
+        comp_deck.append(deal_card())
+        comp_deck.append(deal_card())
+
+        # Show player's cards and dealer's first card
+        print(f"Your cards: {your_deck} current score: {calculate_score(your_deck)}")
+        print(f"Computers first card: {comp_deck[0]}")
+
+        # Player drawing loop
+        draw_again = input("Type 'y' to get another card, type 'n' to pass. ").lower()
+
+        while draw_again == "y":
+            your_deck.append(deal_card())
+
+            print(f"Your cards: {your_deck} current score: {calculate_score(your_deck)}")
+
+            # Stop if player busts
+            if calculate_score(your_deck) > 21:
+                break
+
+            draw_again = input("Type 'y' to get another card, type 'n' to pass. ").lower()
+
+        # Dealer draws until score is at least 17 (standard blackjack rule)
+        while calculate_score(comp_deck) < 17 and calculate_score(comp_deck) != 0:
+            comp_deck.append(deal_card())
+
+        # Compare final scores
+        compare(calculate_score(your_deck), calculate_score(comp_deck))
+
+        # Ask player if they want to play another round
+        play_again = input("Would you like to restart the game? Enter 'y' or 'n'. ").lower()
+
+        if play_again == "n":
+            print("Goodbye")
+            restart = False
+        else:
+            # Clear screen effect
+            print("\n" * 20)
+            print(art.logo)
+            restart = True
